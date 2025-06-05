@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Manager - Dashboard User</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="dashboard-header">
+            <h1>Dashboard User</h1>
+            <div class="user-info">
+                <span id="user-welcome">Bine ai venit, <span id="username"></span>!</span>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <div class="events-section">
+                <h2>Toate Evenimentele Disponibile</h2>
+                <div id="loading" class="loading">Se încarcă evenimentele...</div>
+                <div id="events-list" class="events-grid"></div>
+                <div id="no-events" class="no-events" style="display: none;">
+                    Nu există evenimente disponibile în acest moment.
+                </div>
+            </div>
+        </main>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="../js/user.js"></script>
+</body>
+</html>

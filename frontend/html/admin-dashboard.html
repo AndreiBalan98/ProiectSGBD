@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Manager - Dashboard Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="dashboard-header">
+            <h1>Dashboard Admin</h1>
+            <div class="user-info">
+                <span id="admin-welcome">Bine ai venit, <span id="username"></span>!</span>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <!-- Formular pentru crearea unui nou event -->
+            <section class="create-event-section">
+                <h2>Creează un Nou Eveniment</h2>
+                <form id="create-event-form" class="event-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-title">Titlu:</label>
+                            <input type="text" id="event-title" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="event-date">Data:</label>
+                            <input type="datetime-local" id="event-date" name="date" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-location">Locația:</label>
+                            <input type="text" id="event-location" name="location" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="event-capacity">Capacitate:</label>
+                            <input type="number" id="event-capacity" name="capacity" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="event-description">Descriere:</label>
+                        <textarea id="event-description" name="description" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Creează Eveniment</button>
+                </form>
+            </section>
+
+            <!-- Lista evenimentelor adminului -->
+            <section class="events-section">
+                <h2>Evenimentele Tale</h2>
+                <div id="loading" class="loading">Se încarcă evenimentele...</div>
+                <div id="events-list" class="events-grid"></div>
+                <div id="no-events" class="no-events" style="display: none;">
+                    Nu ai creat încă niciun eveniment.
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal pentru editarea evenimentului -->
+        <div id="edit-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Editează Eveniment</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="edit-event-form" class="event-form">
+                    <input type="hidden" id="edit-event-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-event-title">Titlu:</label>
+                            <input type="text" id="edit-event-title" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-event-date">Data:</label>
+                            <input type="datetime-local" id="edit-event-date" name="date" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-event-location">Locația:</label>
+                            <input type="text" id="edit-event-location" name="location" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-event-capacity">Capacitate:</label>
+                            <input type="number" id="edit-event-capacity" name="capacity" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-event-description">Descriere:</label>
+                        <textarea id="edit-event-description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn btn-primary">Salvează Modificările</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-edit">Anulează</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="../js/admin.js"></script>
+</body>
+</html>
