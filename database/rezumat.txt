@@ -1,0 +1,51 @@
+Această bază de date Oracle implementează un sistem complet de management evenimente cu următoarea structură:
+
+## Tabele Principale
+
+**USERS** (ID_USER, USERNAME, PASSWORD, EMAIL, ROLE[admin/user], DATA_NASTERII, CREATED_AT)
+- Auto-increment cu secvență și trigger
+- Constrângere ROLE cu valori fixe
+
+**CATEGORIES** (ID, NAME, DESCRIPTION, COLOR, CREATED_AT)
+- Categorii pentru evenimente cu culori hex
+
+**VENUES** (ID, NAME, ADDRESS, CITY, MAX_CAPACITY, FACILITIES, CONTACT_PHONE, CONTACT_EMAIL, CREATED_AT)
+- Locații cu capacitate maximă și facilități
+
+**EVENTS** (ID, TITLE, DESCRIPTION, DATE_EVENT, LOCATION, CAPACITY, ORGANIZER_ID, CATEGORY_ID, VENUE_ID, STATUS[draft/published/cancelled], CREATED_AT)
+- FK către USERS (organizator), CATEGORIES și VENUES
+- Status controlat prin constrângere
+
+**REGISTRATIONS** (ID, USER_ID, EVENT_ID, REGISTERED_AT)
+- FK către USERS și EVENTS
+- Constrângere UNIQUE pe (USER_ID, EVENT_ID) - un user/eveniment
+
+## Funcționalități Avansate
+
+**Pachetul EVENT_MANAGER** conține:
+- `GET_AVERAGE_AGE_FOR_EVENT()` - vârsta medie participanți
+- `GENERATE_PARTICIPATION_REPORT()` - raport detaliat cu capacitate, ocupare, statistici
+- `GET_OCCUPANCY_RATE()` - procentaj ocupare
+- `CAN_USER_REGISTER()` - verifică eligibilitatea (nu e înregistrat, eveniment publicat, în viitor, locuri disponibile)
+- `GENERATE_FULL_REPORT()` - raport complet cu lista participanților
+
+**Funcții standalone:**
+- `GET_OVERALL_AVERAGE_AGE()` - vârsta medie generală
+- `GET_AVERAGE_AGE_BY_CATEGORY()` - vârsta medie pe categorie
+
+## View-uri pentru Raportare
+
+- **V_EVENTS_COMPLETE** - evenimente cu toate detaliile, statistici ocupare
+- **V_CATEGORY_STATS** - statistici pe categorii (total evenimente, înregistrări)
+- **V_USER_ACTIVITY** - activitatea utilizatorilor, vârsta, participări
+- **V_POPULAR_EVENTS** - evenimente sortate după popularitate cu etichete status
+- **V_UPCOMING_EVENTS** - evenimente viitoare cu zile rămase
+
+## Caracteristici Tehnice
+
+- Toate tabelele au auto-increment prin secvențe + triggere
+- Integritate referențială prin FK
+- Gestionare excepții în funcții (returnează -1/0 pentru erori)
+- Calculare vârstă prin `MONTHS_BETWEEN(SYSDATE, DATA_NASTERII)/12`
+- Rapoarte formatate cu `CHR(10)` pentru new-line
+- Utilizare `DBMS_OUTPUT` pentru afișare rapoarte complete
