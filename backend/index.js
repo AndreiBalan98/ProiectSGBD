@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const oracledb = require('oracledb');
 
+oracledb.initOracleClient({ libDir: '/opt/oracle/instantclient' });
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -105,10 +107,9 @@ app.post('/admin/events', async (req, res) => {
     
     const connection = await oracledb.getConnection(dbConfig);
     await connection.execute(`
-        INSERT INTO EVENTS (TITLE, DESCRIPTION, DATE_EVENT, LOCATION, CAPACITY, ORGANIZER_ID)
-        VALUES (:title, :description, TO_TIMESTAMP(:date, 'YYYY-MM-DD"T"HH24:MI'), :location, :capacity, :organizerId)
-    `, { title, description, date, location, capacity, organizerId }, { autoCommit: true });
-    await connection.close();
+    INSERT INTO EVENTS (TITLE, DESCRIPTION, DATE_EVENT, LOCATION, CAPACITY, ORGANIZER_ID)
+    VALUES (:title, :description, TO_TIMESTAMP('${date}', 'YYYY-MM-DD"T"HH24:MI'), :location, :capacity, :organizerId)
+`, { title, description, location, capacity, organizerId }, { autoCommit: true });
 
     res.json({ message: 'Eveniment creat!' });
 });

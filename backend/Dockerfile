@@ -1,13 +1,12 @@
-# Folosim imaginea oficială Node.js
-FROM node:18-alpine
+# Folosim imaginea Ubuntu în loc de Alpine
+FROM node:18-slim
 
-# Instalăm dependențele necesare pentru Oracle Client
-RUN apk add --no-cache \
-    libaio \
-    libnsl \
-    libc6-compat \
+# Instalăm dependențele necesare
+RUN apt-get update && apt-get install -y \
+    libaio1 \
     curl \
-    unzip
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
 
 # Descărcăm și instalăm Oracle Instant Client
 RUN mkdir -p /opt/oracle && \
