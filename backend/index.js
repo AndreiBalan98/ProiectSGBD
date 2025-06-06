@@ -9,7 +9,7 @@ app.use(express.json());
 // Configurare DB
 const dbConfig = {
     user: 'system',
-    password: 'Admin123',
+    password: 'oracle',
     connectString: 'oracle-xe:1521/XE'
 };
 
