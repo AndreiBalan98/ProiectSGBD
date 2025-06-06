@@ -17,14 +17,44 @@
         </header>
 
         <main class="dashboard-main">
-            <div class="events-section">
+            <!-- Evenimente Populare -->
+            <section class="popular-events-section">
+                <h2>Evenimente Populare</h2>
+                <div id="popular-loading" class="loading">Se încarcă evenimentele populare...</div>
+                <div id="popular-events-list" class="events-grid popular-events"></div>
+            </section>
+
+            <!-- Filtru și Căutare -->
+            <section class="filters-section">
                 <h2>Toate Evenimentele Disponibile</h2>
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label for="category-filter">Filtrează după categorie:</label>
+                        <select id="category-filter">
+                            <option value="">Toate categoriile</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="search-filter">Caută evenimente:</label>
+                        <input type="text" id="search-filter" placeholder="Căută după titlu sau locație...">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lista Tuturor Evenimentelor -->
+            <section class="events-section">
                 <div id="loading" class="loading">Se încarcă evenimentele...</div>
                 <div id="events-list" class="events-grid"></div>
                 <div id="no-events" class="no-events" style="display: none;">
                     Nu există evenimente disponibile în acest moment.
                 </div>
-            </div>
+            </section>
+
+            <!-- Statistici Categorii -->
+            <section class="category-stats-section">
+                <h2>Statistici Categorii</h2>
+                <div id="category-stats" class="category-stats-grid"></div>
+            </section>
         </main>
 
         <div id="message" class="message"></div>

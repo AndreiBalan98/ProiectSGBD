@@ -17,7 +17,30 @@
         </header>
 
         <main class="dashboard-main">
-            <!-- formular pentru crearea unui nou event -->
+            <!-- Statistici Dashboard -->
+            <section class="stats-section">
+                <h2>Statistici</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Evenimente</h3>
+                        <div class="stat-number" id="total-events">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Publicate</h3>
+                        <div class="stat-number" id="published-events">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Draft-uri</h3>
+                        <div class="stat-number" id="draft-events">-</div>
+                    </div>
+                </div>
+                <div class="top-categories">
+                    <h3>Top Categorii</h3>
+                    <div id="categories-list" class="categories-stats"></div>
+                </div>
+            </section>
+
+            <!-- Formular pentru crearea unui nou event -->
             <section class="create-event-section">
                 <h2>Creează un Nou Eveniment</h2>
                 <form id="create-event-form" class="event-form">
@@ -33,12 +56,35 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="event-category">Categorie:</label>
+                            <select id="event-category" name="categoryId" required>
+                                <option value="">Selectează categoria</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="event-venue">Venue:</label>
+                            <select id="event-venue" name="venueId">
+                                <option value="">Selectează venue-ul (opțional)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="event-location">Locația:</label>
                             <input type="text" id="event-location" name="location" required>
                         </div>
                         <div class="form-group">
                             <label for="event-capacity">Capacitate:</label>
                             <input type="number" id="event-capacity" name="capacity" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-status">Status:</label>
+                            <select id="event-status" name="status" required>
+                                <option value="draft">Draft</option>
+                                <option value="published">Publicat</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">
@@ -49,7 +95,7 @@
                 </form>
             </section>
 
-            <!-- lista evenimentelor adminului -->
+            <!-- Lista evenimentelor adminului -->
             <section class="events-section">
                 <h2>Evenimentele Tale</h2>
                 <div id="loading" class="loading">Se încarcă evenimentele...</div>
@@ -60,7 +106,7 @@
             </section>
         </main>
 
-        <!-- modal pentru editarea evenimentului -->
+        <!-- Modal pentru editarea evenimentului -->
         <div id="edit-modal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -81,12 +127,35 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="edit-event-category">Categorie:</label>
+                            <select id="edit-event-category" name="categoryId" required>
+                                <option value="">Selectează categoria</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-event-venue">Venue:</label>
+                            <select id="edit-event-venue" name="venueId">
+                                <option value="">Selectează venue-ul (opțional)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="edit-event-location">Locația:</label>
                             <input type="text" id="edit-event-location" name="location" required>
                         </div>
                         <div class="form-group">
                             <label for="edit-event-capacity">Capacitate:</label>
                             <input type="number" id="edit-event-capacity" name="capacity" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-event-status">Status:</label>
+                            <select id="edit-event-status" name="status" required>
+                                <option value="draft">Draft</option>
+                                <option value="published">Publicat</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">
@@ -98,6 +167,20 @@
                         <button type="button" class="btn btn-secondary" id="cancel-edit">Anulează</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal pentru raportul de participare -->
+        <div id="report-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Raport Participare</h3>
+                    <span class="close" id="close-report">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="report-content" class="report-content"></div>
+                    <div id="average-age" class="average-age-info"></div>
+                </div>
             </div>
         </div>
 
