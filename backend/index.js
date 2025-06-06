@@ -51,25 +51,58 @@ app.post('/signup', async (req, res) => {
     res.json({ message: 'Utilizator creat!' });
 });
 
-// Toate evenimentele
+// 1. Endpoint pentru categorii
+app.get('/categories', async (req, res) => {
+    const connection = await oracledb.getConnection(dbConfig);
+    const result = await connection.execute(`SELECT * FROM CATEGORIES ORDER BY NAME`);
+    await connection.close();
+    
+    const categories = result.rows.map(row => ({
+        id: row[0], name: row[1], description: row[2], color: row[3]
+    }));
+    res.json(categories);
+});
+
+// 2. Endpoint pentru venue-uri
+app.get('/venues', async (req, res) => {
+    const connection = await oracledb.getConnection(dbConfig);
+    const result = await connection.execute(`SELECT * FROM VENUES ORDER BY NAME`);
+    await connection.close();
+    
+    const venues = result.rows.map(row => ({
+        id: row[0], name: row[1], address: row[2], city: row[3], 
+        max_capacity: row[4], facilities: row[5]
+    }));
+    res.json(venues);
+});
+
+// Toate evenimentele (pentru utilizatori)
 app.get('/events', async (req, res) => {
     const connection = await oracledb.getConnection(dbConfig);
     const result = await connection.execute(`
         SELECT e.ID, e.TITLE, e.DESCRIPTION, e.DATE_EVENT, e.LOCATION, e.CAPACITY,
-               u.USERNAME as ORGANIZER_NAME, NVL(r.REGISTERED_COUNT, 0) as REGISTERED_COUNT
+               e.STATUS, u.USERNAME as ORGANIZER_NAME, 
+               c.NAME as CATEGORY_NAME, c.COLOR as CATEGORY_COLOR,
+               v.NAME as VENUE_NAME, v.ADDRESS as VENUE_ADDRESS,
+               NVL(r.REGISTERED_COUNT, 0) as REGISTERED_COUNT
         FROM EVENTS e
         JOIN USERS u ON e.ORGANIZER_ID = u.ID_USER
+        LEFT JOIN CATEGORIES c ON e.CATEGORY_ID = c.ID
+        LEFT JOIN VENUES v ON e.VENUE_ID = v.ID
         LEFT JOIN (
             SELECT EVENT_ID, COUNT(*) as REGISTERED_COUNT
             FROM REGISTRATIONS GROUP BY EVENT_ID
         ) r ON e.ID = r.EVENT_ID
+        WHERE e.STATUS = 'published'
         ORDER BY e.DATE_EVENT ASC
     `);
     await connection.close();
 
     const events = result.rows.map(row => ({
         id: row[0], title: row[1], description: row[2], date: row[3],
-        location: row[4], capacity: row[5], organizer_name: row[6], registered_count: row[7]
+        location: row[4], capacity: row[5], status: row[6],
+        organizer_name: row[7], category_name: row[8], category_color: row[9],
+        venue_name: row[10], venue_address: row[11], registered_count: row[12]
     }));
 
     res.json(events);
@@ -82,8 +115,12 @@ app.get('/admin/events', async (req, res) => {
     const connection = await oracledb.getConnection(dbConfig);
     const result = await connection.execute(`
         SELECT e.ID, e.TITLE, e.DESCRIPTION, e.DATE_EVENT, e.LOCATION, e.CAPACITY,
+               e.STATUS, e.CATEGORY_ID, e.VENUE_ID, e.CREATED_AT,
+               c.NAME as CATEGORY_NAME, v.NAME as VENUE_NAME,
                NVL(r.REGISTERED_COUNT, 0) as REGISTERED_COUNT
         FROM EVENTS e
+        LEFT JOIN CATEGORIES c ON e.CATEGORY_ID = c.ID
+        LEFT JOIN VENUES v ON e.VENUE_ID = v.ID
         LEFT JOIN (
             SELECT EVENT_ID, COUNT(*) as REGISTERED_COUNT
             FROM REGISTRATIONS GROUP BY EVENT_ID
@@ -95,7 +132,9 @@ app.get('/admin/events', async (req, res) => {
 
     const events = result.rows.map(row => ({
         id: row[0], title: row[1], description: row[2], date: row[3],
-        location: row[4], capacity: row[5], registered_count: row[6]
+        location: row[4], capacity: row[5], status: row[6],
+        category_id: row[7], venue_id: row[8], created_at: row[9],
+        category_name: row[10], venue_name: row[11], registered_count: row[12]
     }));
 
     res.json(events);
@@ -103,44 +142,115 @@ app.get('/admin/events', async (req, res) => {
 
 // Creare eveniment
 app.post('/admin/events', async (req, res) => {
-    const { title, description, date, location, capacity, organizerId } = req.body;
+    const { title, description, date, location, capacity, organizerId, categoryId, venueId, status = 'draft' } = req.body;
     
-    const connection = await oracledb.getConnection(dbConfig);
-    await connection.execute(`
-    INSERT INTO EVENTS (TITLE, DESCRIPTION, DATE_EVENT, LOCATION, CAPACITY, ORGANIZER_ID)
-    VALUES (:title, :description, TO_TIMESTAMP('${date}', 'YYYY-MM-DD"T"HH24:MI'), :location, :capacity, :organizerId)
-`, { title, description, location, capacity, organizerId }, { autoCommit: true });
+    try {
+        const connection = await oracledb.getConnection(dbConfig);
+        await connection.execute(`
+            INSERT INTO EVENTS (TITLE, DESCRIPTION, DATE_EVENT, LOCATION, CAPACITY, 
+                               ORGANIZER_ID, CATEGORY_ID, VENUE_ID, STATUS)
+            VALUES (:title, :description, TO_TIMESTAMP(:date, 'YYYY-MM-DD"T"HH24:MI'), 
+                    :location, :capacity, :organizerId, :categoryId, :venueId, :status)
+        `, { 
+            title, 
+            description, 
+            date, 
+            location, 
+            capacity, 
+            organizerId, 
+            categoryId: categoryId || null, 
+            venueId: venueId || null, 
+            status 
+        }, { autoCommit: true });
+        await connection.close();
 
-    res.json({ message: 'Eveniment creat!' });
+        res.json({ message: 'Eveniment creat!' });
+    } catch (error) {
+        console.error('Eroare creare eveniment:', error);
+        res.status(500).json({ message: 'Eroare la crearea evenimentului!' });
+    }
 });
 
 // Actualizare eveniment
 app.put('/admin/events/:id', async (req, res) => {
     const { id } = req.params;
-    const { title, description, date, location, capacity } = req.body;
+    const { title, description, date, location, capacity, categoryId, venueId, status } = req.body;
     
-    const connection = await oracledb.getConnection(dbConfig);
-    await connection.execute(`
-        UPDATE EVENTS 
-        SET TITLE = :title, DESCRIPTION = :description, DATE_EVENT = TO_TIMESTAMP(:date, 'YYYY-MM-DD"T"HH24:MI'), 
-            LOCATION = :location, CAPACITY = :capacity
-        WHERE ID = :id
-    `, { title, description, date, location, capacity, id }, { autoCommit: true });
-    await connection.close();
+    try {
+        const connection = await oracledb.getConnection(dbConfig);
+        await connection.execute(`
+            UPDATE EVENTS 
+            SET TITLE = :title, DESCRIPTION = :description, 
+                DATE_EVENT = TO_TIMESTAMP(:date, 'YYYY-MM-DD"T"HH24:MI'), 
+                LOCATION = :location, CAPACITY = :capacity,
+                CATEGORY_ID = :categoryId, VENUE_ID = :venueId, STATUS = :status
+            WHERE ID = :id
+        `, { 
+            title, 
+            description, 
+            date, 
+            location, 
+            capacity, 
+            categoryId: categoryId || null,
+            venueId: venueId || null,
+            status,
+            id 
+        }, { autoCommit: true });
+        await connection.close();
 
-    res.json({ message: 'Eveniment actualizat!' });
+        res.json({ message: 'Eveniment actualizat!' });
+    } catch (error) {
+        console.error('Eroare actualizare eveniment:', error);
+        res.status(500).json({ message: 'Eroare la actualizarea evenimentului!' });
+    }
 });
 
 // Ștergere eveniment
 app.delete('/admin/events/:id', async (req, res) => {
     const { id } = req.params;
     
-    const connection = await oracledb.getConnection(dbConfig);
-    await connection.execute(`DELETE FROM REGISTRATIONS WHERE EVENT_ID = :id`, { id });
-    await connection.execute(`DELETE FROM EVENTS WHERE ID = :id`, { id }, { autoCommit: true });
-    await connection.close();
+    try {
+        const connection = await oracledb.getConnection(dbConfig);
+        await connection.execute(`DELETE FROM REGISTRATIONS WHERE EVENT_ID = :id`, { id });
+        await connection.execute(`DELETE FROM EVENTS WHERE ID = :id`, { id }, { autoCommit: true });
+        await connection.close();
 
-    res.json({ message: 'Eveniment șters!' });
+        res.json({ message: 'Eveniment șters!' });
+    } catch (error) {
+        console.error('Eroare ștergere eveniment:', error);
+        res.status(500).json({ message: 'Eroare la ștergerea evenimentului!' });
+    }
+});
+
+// Participanți la eveniment (pentru raport)
+app.get('/admin/events/:id/participants', async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        const connection = await oracledb.getConnection(dbConfig);
+        const result = await connection.execute(`
+            SELECT u.USERNAME, u.EMAIL, u.DATA_NASTERII, r.REGISTERED_AT,
+                   FLOOR(MONTHS_BETWEEN(SYSDATE, u.DATA_NASTERII) / 12) as AGE
+            FROM REGISTRATIONS r
+            JOIN USERS u ON r.USER_ID = u.ID_USER
+            WHERE r.EVENT_ID = :eventId
+            ORDER BY r.REGISTERED_AT ASC
+        `, { eventId: id });
+        await connection.close();
+
+        const participants = result.rows.map(row => ({
+            username: row[0],
+            email: row[1],
+            birth_date: row[2],
+            registration_date: row[3],
+            age: row[4]
+        }));
+
+        res.json(participants);
+    } catch (error) {
+        console.error('Eroare încărcare participanți:', error);
+        res.status(500).json({ message: 'Eroare la încărcarea participanților!' });
+    }
 });
 
 // Înregistrare la eveniment
@@ -217,82 +327,6 @@ app.get('/user/registrations', async (req, res) => {
     }));
 
     res.json(registrations);
-});
-
-// Adăugări necesare în index.js pentru integrare completă
-
-// 1. Endpoint pentru categorii
-app.get('/categories', async (req, res) => {
-    const connection = await oracledb.getConnection(dbConfig);
-    const result = await connection.execute(`SELECT * FROM CATEGORIES ORDER BY NAME`);
-    await connection.close();
-    
-    const categories = result.rows.map(row => ({
-        id: row[0], name: row[1], description: row[2], color: row[3]
-    }));
-    res.json(categories);
-});
-
-// 2. Endpoint pentru venue-uri
-app.get('/venues', async (req, res) => {
-    const connection = await oracledb.getConnection(dbConfig);
-    const result = await connection.execute(`SELECT * FROM VENUES ORDER BY NAME`);
-    await connection.close();
-    
-    const venues = result.rows.map(row => ({
-        id: row[0], name: row[1], address: row[2], city: row[3], 
-        max_capacity: row[4], facilities: row[5]
-    }));
-    res.json(venues);
-});
-
-// 3. Evenimente îmbunătățite cu categorii și venue-uri
-app.get('/events', async (req, res) => {
-    const connection = await oracledb.getConnection(dbConfig);
-    const result = await connection.execute(`
-        SELECT e.ID, e.TITLE, e.DESCRIPTION, e.DATE_EVENT, e.LOCATION, e.CAPACITY,
-               e.STATUS, u.USERNAME as ORGANIZER_NAME, 
-               c.NAME as CATEGORY_NAME, c.COLOR as CATEGORY_COLOR,
-               v.NAME as VENUE_NAME, v.ADDRESS as VENUE_ADDRESS,
-               NVL(r.REGISTERED_COUNT, 0) as REGISTERED_COUNT
-        FROM EVENTS e
-        JOIN USERS u ON e.ORGANIZER_ID = u.ID_USER
-        LEFT JOIN CATEGORIES c ON e.CATEGORY_ID = c.ID
-        LEFT JOIN VENUES v ON e.VENUE_ID = v.ID
-        LEFT JOIN (
-            SELECT EVENT_ID, COUNT(*) as REGISTERED_COUNT
-            FROM REGISTRATIONS GROUP BY EVENT_ID
-        ) r ON e.ID = r.EVENT_ID
-        WHERE e.STATUS = 'published'
-        ORDER BY e.DATE_EVENT ASC
-    `);
-    await connection.close();
-
-    const events = result.rows.map(row => ({
-        id: row[0], title: row[1], description: row[2], date: row[3],
-        location: row[4], capacity: row[5], status: row[6],
-        organizer_name: row[7], category_name: row[8], category_color: row[9],
-        venue_name: row[10], venue_address: row[11], registered_count: row[12]
-    }));
-
-    res.json(events);
-});
-
-// 4. Creare eveniment cu categorii și venue-uri
-app.post('/admin/events', async (req, res) => {
-    const { title, description, date, location, capacity, organizerId, categoryId, venueId, status = 'draft' } = req.body;
-    
-    const connection = await oracledb.getConnection(dbConfig);
-    await connection.execute(`
-        INSERT INTO EVENTS (TITLE, DESCRIPTION, DATE_EVENT, LOCATION, CAPACITY, 
-                           ORGANIZER_ID, CATEGORY_ID, VENUE_ID, STATUS)
-        VALUES (:title, :description, TO_TIMESTAMP(:date, 'YYYY-MM-DD"T"HH24:MI'), 
-                :location, :capacity, :organizerId, :categoryId, :venueId, :status)
-    `, { title, description, date, location, capacity, organizerId, categoryId, venueId, status }, 
-    { autoCommit: true });
-    await connection.close();
-
-    res.json({ message: 'Eveniment creat!' });
 });
 
 // 5. Raport participare folosind funcția din DB
