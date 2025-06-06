@@ -1,32 +1,32 @@
-// Configurare backend URL
+// configurare backend URL
 const BACKEND_URL = 'http://localhost:3000';
 
-// Elemente DOM
+// elemente DOM
 const tabButtons = document.querySelectorAll('.tab-btn');
 const authForms = document.querySelectorAll('.auth-form');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const messageDiv = document.getElementById('message');
 
-// Gestionarea tab-urilor
+// gestionarea tab-urilor
 tabButtons.forEach(button => {
     button.addEventListener('click', () => {
         const tabName = button.getAttribute('data-tab');
         
-        // Actualizare butoane active
+        // actualizare butoane active
         tabButtons.forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
         
-        // Afișare formular corespunzător
+        // afisare formular corespunzator
         authForms.forEach(form => form.classList.remove('active'));
         document.getElementById(`${tabName}-form`).classList.add('active');
         
-        // Curățare mesaje
+        // curatare mesaje
         hideMessage();
     });
 });
 
-// Gestionarea formularului de login
+// gestionarea formularului de login
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -38,7 +38,7 @@ loginForm.addEventListener('submit', async (e) => {
     };
     
     try {
-        showMessage('Se procesează autentificarea...', 'info');
+        showMessage('Se proceseaza autentificarea...', 'info');
         
         const response = await fetch(`${BACKEND_URL}/login`, {
             method: 'POST',
@@ -51,14 +51,14 @@ loginForm.addEventListener('submit', async (e) => {
         const result = await response.json();
         
         if (response.ok) {
-            // Salvare date în localStorage
+            // salvare date în localStorage
             window.localStorage.setItem('id_user', result.id_user);
             window.localStorage.setItem('role', result.role);
             window.localStorage.setItem('username', result.username);
             
-            showMessage('Autentificare reușită! Redirecționare...', 'success');
+            showMessage('Autentificare reusita! Redirectionare...', 'success');
             
-            // Redirecționare în funcție de rol
+            // redirectionare în functie de rol
             setTimeout(() => {
                 if (result.role === 'admin') {
                     window.location.href = 'admin-dashboard.html';
@@ -77,7 +77,7 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Gestionarea formularului de înregistrare
+// gestionarea formularului de inregistrare
 registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -89,14 +89,14 @@ registerForm.addEventListener('submit', async (e) => {
         role: formData.get('role')
     };
     
-    // Validare de bază
+    // validare de baza
     if (registerData.password.length < 6) {
-        showMessage('Parola trebuie să aibă cel puțin 6 caractere!', 'error');
+        showMessage('Parola trebuie sa aiba cel putin 6 caractere!', 'error');
         return;
     }
     
     try {
-        showMessage('Se procesează înregistrarea...', 'info');
+        showMessage('Se proceseaza inregistrarea...', 'info');
         
         const response = await fetch(`${BACKEND_URL}/signup`, {
             method: 'POST',
@@ -109,16 +109,16 @@ registerForm.addEventListener('submit', async (e) => {
         const result = await response.json();
         
         if (response.ok) {
-            showMessage('Înregistrare reușită! Poți să te autentifici acum.', 'success');
+            showMessage('Inregistrare reusita! Poti sa te autentifici acum.', 'success');
             
-            // Resetare formular și comutare la Sign In
+            // resetare formular si comutare la sign in
             registerForm.reset();
             setTimeout(() => {
                 document.querySelector('[data-tab="signin"]').click();
             }, 2000);
             
         } else {
-            showMessage(result.message || 'Eroare la înregistrare!', 'error');
+            showMessage(result.message || 'Eroare la inregistrare!', 'error');
         }
         
     } catch (error) {
@@ -127,7 +127,7 @@ registerForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Funcții utilitare pentru mesaje
+// funcții utilitare pentru mesaje
 function showMessage(text, type = 'info') {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type}`;
@@ -139,13 +139,13 @@ function hideMessage() {
     messageDiv.className = 'message';
 }
 
-// Verificare dacă utilizatorul este deja autentificat
+// verificare daca utilizatorul este deja autentificat
 window.addEventListener('load', () => {
     const userId = window.localStorage.getItem('id_user');
     const role = window.localStorage.getItem('role');
     
     if (userId && role) {
-        // Utilizatorul este deja autentificat, redirecționează
+        // utilizatorul este deja autentificat, redirectioneaza
         if (role === 'admin') {
             window.location.href = 'admin-dashboard.html';
         } else {
