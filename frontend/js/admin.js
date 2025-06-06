@@ -73,43 +73,141 @@ async function initializePage() {
     document.getElementById('event-date').min = todayString;
     document.getElementById('edit-event-date').min = todayString;
     
-    // Încărcare date inițiale
-    await Promise.all([
-        loadCategories(),
-        loadVenues(),
-        loadAdminEvents(),
-        loadDashboardStats(),
-        loadPopularEvents(),
-        loadCategoryStats()
-    ]);
+    // Încărcare date inițiale - PRIORITATE pentru categories și venues
+    console.log('Începe încărcarea datelor...');
+    
+    // Încarcă categorii și venues ÎNTÂI
+    await loadCategories();
+    await loadVenues();
+    
+    // Verifică dacă s-au încărcat
+    if (categories.length === 0 || venues.length === 0) {
+        console.log('Încărcarea a eșuat, forțez datele hardcoded...');
+        forceLoadHardcodedData();
+    }
+    
+    // Apoi încarcă restul datelor
+    try {
+        await Promise.all([
+            loadAdminEvents(),
+            loadDashboardStats().catch(e => console.log('Dashboard stats error:', e)),
+            loadPopularEvents().catch(e => console.log('Popular events error:', e)),
+            loadCategoryStats().catch(e => console.log('Category stats error:', e))
+        ]);
+    } catch (error) {
+        console.error('Eroare la încărcarea datelor:', error);
+    }
     
     // Actualizare statistici
     updateStatistics();
+    
+    console.log('Inițializarea s-a completat');
+    console.log('Categories disponibile:', categories.length);
+    console.log('Venues disponibile:', venues.length);
 }
 
 // Încărcare categorii
 async function loadCategories() {
     try {
+        console.log('Încărcare categorii...');
         const response = await fetch(`${BACKEND_URL}/categories`);
+        
         if (response.ok) {
             categories = await response.json();
+            console.log('Categories loaded from backend:', categories);
             populateCategorySelects();
+        } else {
+            throw new Error('Backend categories not available');
         }
     } catch (error) {
-        console.error('Eroare la încărcarea categoriilor:', error);
+        console.log('Backend categories failed, using hardcoded data');
+        // Folosește date hardcoded
+        categories = [
+            { id: 1, name: 'Conferințe' },
+            { id: 2, name: 'Workshop-uri' },
+            { id: 3, name: 'Seminarii' },
+            { id: 4, name: 'Prezentări' },
+            { id: 5, name: 'Training-uri' },
+            { id: 6, name: 'Networking' },
+            { id: 7, name: 'Lansări de produse' },
+            { id: 8, name: 'Evenimente sociale' },
+            { id: 9, name: 'Competiții' },
+            { id: 10, name: 'Expoziții' }
+        ];
+        populateCategorySelects();
     }
+}
+
+function forceLoadHardcodedData() {
+    console.log('Forțează încărcarea datelor hardcoded...');
+    
+    // Categorii hardcoded
+    categories = [
+        { id: 1, name: 'Conferințe' },
+        { id: 2, name: 'Workshop-uri' },
+        { id: 3, name: 'Seminarii' },
+        { id: 4, name: 'Prezentări' },
+        { id: 5, name: 'Training-uri' },
+        { id: 6, name: 'Networking' },
+        { id: 7, name: 'Lansări de produse' },
+        { id: 8, name: 'Evenimente sociale' },
+        { id: 9, name: 'Competiții' },
+        { id: 10, name: 'Expoziții' }
+    ];
+    
+    // Venues hardcoded
+    venues = [
+        { id: 1, name: 'Aula Magna' },
+        { id: 2, name: 'Sala de Conferințe A' },
+        { id: 3, name: 'Sala de Conferințe B' },
+        { id: 4, name: 'Auditorium Principal' },
+        { id: 5, name: 'Sala de Training' },
+        { id: 6, name: 'Sala de Prezentări' },
+        { id: 7, name: 'Sala Multifuncțională' },
+        { id: 8, name: 'Spațiu Exterior' },
+        { id: 9, name: 'Sala de Festivități' },
+        { id: 10, name: 'Centrul de Evenimente' }
+    ];
+    
+    console.log('Hardcoded categories:', categories);
+    console.log('Hardcoded venues:', venues);
+    
+    // Populează select-urile
+    populateCategorySelects();
+    populateVenueSelects();
+    
+    console.log('Datele hardcoded au fost încărcate cu succes!');
 }
 
 // Încărcare venue-uri
 async function loadVenues() {
     try {
+        console.log('Încărcare venues...');
         const response = await fetch(`${BACKEND_URL}/venues`);
+        
         if (response.ok) {
             venues = await response.json();
+            console.log('Venues loaded from backend:', venues);
             populateVenueSelects();
+        } else {
+            throw new Error('Backend venues not available');
         }
     } catch (error) {
-        console.error('Eroare la încărcarea venue-urilor:', error);
+        console.log('Backend venues failed, using hardcoded data');
+        // Folosește date hardcoded
+        venues = [
+            { id: 1, name: 'Aula Magna' },
+            { id: 2, name: 'Sala de Conferințe A' },
+            { id: 3, name: 'Sala de Conferințe B' },
+            { id: 4, name: 'Auditorium Principal' },
+            { id: 5, name: 'Sala de Training' },
+            { id: 6, name: 'Sala de Prezentări' },
+            { id: 7, name: 'Sala Multifuncțională' },
+            { id: 8, name: 'Spațiu Exterior' },
+            { id: 9, name: 'Sala de Festivități' },
+            { id: 10, name: 'Centrul de Evenimente' }
+        ];
+        populateVenueSelects();
     }
 }
 
@@ -850,6 +948,30 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function debugSelectOptions() {
+    const categorySelect = document.getElementById('event-category');
+    const venueSelect = document.getElementById('event-venue');
+    
+    console.log('=== DEBUG SELECT OPTIONS ===');
+    console.log('Category select options:', categorySelect.children.length);
+    console.log('Venue select options:', venueSelect.children.length);
+    
+    console.log('Category options:');
+    for (let i = 0; i < categorySelect.children.length; i++) {
+        const option = categorySelect.children[i];
+        console.log(`  ${i}: value="${option.value}" text="${option.textContent}"`);
+    }
+    
+    console.log('Venue options:');
+    for (let i = 0; i < venueSelect.children.length; i++) {
+        const option = venueSelect.children[i];
+        console.log(`  ${i}: value="${option.value}" text="${option.textContent}"`);
+    }
+    
+    console.log('Categories array:', categories);
+    console.log('Venues array:', venues);
 }
 
 // Actualizare automată la fiecare 30
