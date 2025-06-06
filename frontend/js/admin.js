@@ -22,6 +22,12 @@ const publishedEventsSpan = document.getElementById('published-events');
 const draftEventsSpan = document.getElementById('draft-events');
 const categoriesListDiv = document.getElementById('categories-list');
 
+// Elemente pentru rapoarte avansate
+const averageAgeDiv = document.getElementById('average-age');
+const participationReportDiv = document.getElementById('participation-report');
+const popularEventsDiv = document.getElementById('popular-events');
+const categoryStatsDiv = document.getElementById('category-stats');
+
 // Date utilizator
 let currentAdmin = {
     id: null,
@@ -71,7 +77,10 @@ async function initializePage() {
     await Promise.all([
         loadCategories(),
         loadVenues(),
-        loadAdminEvents()
+        loadAdminEvents(),
+        loadDashboardStats(),
+        loadPopularEvents(),
+        loadCategoryStats()
     ]);
     
     // Actualizare statistici
@@ -101,6 +110,131 @@ async function loadVenues() {
         }
     } catch (error) {
         console.error('Eroare la încărcarea venue-urilor:', error);
+    }
+}
+
+// Încărcare statistici dashboard
+async function loadDashboardStats() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/admin/dashboard-stats?adminId=${currentAdmin.id}`);
+        if (response.ok) {
+            const stats = await response.json();
+            updateDashboardStats(stats);
+        }
+    } catch (error) {
+        console.error('Eroare la încărcarea statisticilor:', error);
+    }
+}
+
+// Încărcare evenimente populare
+async function loadPopularEvents() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/popular-events`);
+        if (response.ok) {
+            const popularEvents = await response.json();
+            displayPopularEvents(popularEvents);
+        }
+    } catch (error) {
+        console.error('Eroare la încărcarea evenimentelor populare:', error);
+    }
+}
+
+// Încărcare statistici categorii
+async function loadCategoryStats() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/category-stats`);
+        if (response.ok) {
+            const categoryStats = await response.json();
+            displayCategoryStats(categoryStats);
+        }
+    } catch (error) {
+        console.error('Eroare la încărcarea statisticilor categoriilor:', error);
+    }
+}
+
+// Actualizare statistici dashboard
+function updateDashboardStats(stats) {
+    if (stats.events_stats) {
+        const eventsStats = stats.events_stats;
+        totalEventsSpan.textContent = eventsStats[0] || 0; // TOTAL_EVENTS
+        publishedEventsSpan.textContent = eventsStats[1] || 0; // PUBLISHED
+        draftEventsSpan.textContent = eventsStats[2] || 0; // DRAFTS
+    }
+    
+    if (stats.top_categories && categoriesListDiv) {
+        categoriesListDiv.innerHTML = '';
+        
+        if (stats.top_categories.length === 0) {
+            categoriesListDiv.innerHTML = '<p>Nu există evenimente încă.</p>';
+            return;
+        }
+        
+        stats.top_categories.forEach(([categoryName, count]) => {
+            const categoryItem = document.createElement('div');
+            categoryItem.className = 'category-stat-item';
+            categoryItem.innerHTML = `
+                <span class="category-name">${escapeHtml(categoryName)}</span>
+                <span class="category-count">${count}</span>
+            `;
+            categoriesListDiv.appendChild(categoryItem);
+        });
+    }
+}
+
+// Afișare evenimente populare
+function displayPopularEvents(events) {
+    if (popularEventsDiv) {
+        popularEventsDiv.innerHTML = '<h5>Evenimente Populare</h5>';
+        
+        if (events.length === 0) {
+            popularEventsDiv.innerHTML += '<p>Nu există evenimente populare.</p>';
+            return;
+        }
+        
+        const list = document.createElement('ul');
+        events.forEach(event => {
+            const item = document.createElement('li');
+            item.innerHTML = `
+                <strong>${escapeHtml(event[1])}</strong> - 
+                ${event[2]} participanți
+            `;
+            list.appendChild(item);
+        });
+        popularEventsDiv.appendChild(list);
+    }
+}
+
+// Afișare statistici categorii
+function displayCategoryStats(stats) {
+    if (categoryStatsDiv) {
+        categoryStatsDiv.innerHTML = '<h5>Statistici Categorii</h5>';
+        
+        if (stats.length === 0) {
+            categoryStatsDiv.innerHTML += '<p>Nu există statistici disponibile.</p>';
+            return;
+        }
+        
+        const table = document.createElement('table');
+        table.className = 'stats-table';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>Categorie</th>
+                    <th>Total Evenimente</th>
+                    <th>Total Participanți</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${stats.map(stat => `
+                    <tr>
+                        <td>${escapeHtml(stat[0])}</td>
+                        <td>${stat[1]}</td>
+                        <td>${stat[2]}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        `;
+        categoryStatsDiv.appendChild(table);
     }
 }
 
@@ -308,7 +442,13 @@ function createEventCard(event) {
                 Editează
             </button>
             <button class="btn btn-info btn-small" onclick="showParticipationReport(${event.id})">
-                Raport
+                Raport Participanți
+            </button>
+            <button class="btn btn-secondary btn-small" onclick="showAdvancedReport(${event.id})">
+                Raport Avansat
+            </button>
+            <button class="btn btn-warning btn-small" onclick="showAverageAge(${event.id})">
+                Vârsta Medie
             </button>
             <button class="btn btn-danger btn-small" onclick="deleteEvent(${event.id})">
                 Șterge
@@ -335,6 +475,49 @@ async function showParticipationReport(eventId) {
         }
     } catch (error) {
         console.error('Eroare la încărcarea raportului:', error);
+        showMessage('Eroare de conexiune la server!', 'error');
+    }
+}
+
+// Afișare raport avansat (folosind funcția din DB)
+async function showAdvancedReport(eventId) {
+    try {
+        const response = await fetch(`${BACKEND_URL}/admin/events/${eventId}/report`);
+        
+        if (response.ok) {
+            const result = await response.json();
+            const event = adminEvents.find(e => e.id === eventId);
+            
+            displayAdvancedReport(event, result.report);
+            reportModal.style.display = 'block';
+        } else {
+            showMessage('Eroare la încărcarea raportului avansat!', 'error');
+        }
+    } catch (error) {
+        console.error('Eroare la încărcarea raportului avansat:', error);
+        showMessage('Eroare de conexiune la server!', 'error');
+    }
+}
+
+// Afișare vârsta medie
+async function showAverageAge(eventId) {
+    try {
+        const response = await fetch(`${BACKEND_URL}/admin/events/${eventId}/average-age`);
+        
+        if (response.ok) {
+            const result = await response.json();
+            const event = adminEvents.find(e => e.id === eventId);
+            
+            const message = result.average_age !== null ? 
+                `Vârsta medie a participanților la "${event.title}" este: ${result.average_age.toFixed(1)} ani` :
+                `Nu există informații despre vârsta participanților la "${event.title}"`;
+            
+            showMessage(message, 'info');
+        } else {
+            showMessage('Eroare la calcularea vârstei medii!', 'error');
+        }
+    } catch (error) {
+        console.error('Eroare la calcularea vârstei medii:', error);
         showMessage('Eroare de conexiune la server!', 'error');
     }
 }
@@ -399,6 +582,31 @@ function displayParticipationReport(event, participants) {
     }
 }
 
+// Afișare raport avansat
+function displayAdvancedReport(event, report) {
+    const reportContent = document.getElementById('report-content');
+    
+    reportContent.innerHTML = `
+        <div class="report-header">
+            <h4>Raport Avansat - ${escapeHtml(event.title)}</h4>
+            <p><strong>Data:</strong> ${formatDate(event.date)}</p>
+            <p><strong>Locația:</strong> ${escapeHtml(event.location)}</p>
+        </div>
+        
+        <div class="advanced-report">
+            <h5>Raport Generat de Sistem:</h5>
+            <div class="report-content-text">
+                ${escapeHtml(report)}
+            </div>
+        </div>
+    `;
+    
+    // Curățare secțiunea de vârstă medie pentru raportul avansat
+    if (averageAgeDiv) {
+        averageAgeDiv.innerHTML = '';
+    }
+}
+
 // Creare eveniment nou
 createEventForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -433,8 +641,11 @@ createEventForm.addEventListener('submit', async (e) => {
             showMessage('Eveniment creat cu succes!', 'success');
             createEventForm.reset();
             
-            // Reîncărcare evenimente
-            await loadAdminEvents();
+            // Reîncărcare evenimente și statistici
+            await Promise.all([
+                loadAdminEvents(),
+                loadDashboardStats()
+            ]);
             
         } else {
             showMessage(result.message || 'Eroare la crearea evenimentului!', 'error');
@@ -509,8 +720,11 @@ editEventForm.addEventListener('submit', async (e) => {
             showMessage('Eveniment actualizat cu succes!', 'success');
             closeModal();
             
-            // Reîncărcare evenimente
-            await loadAdminEvents();
+            // Reîncărcare evenimente și statistici
+            await Promise.all([
+                loadAdminEvents(),
+                loadDashboardStats()
+            ]);
             
         } else {
             showMessage(result.message || 'Eroare la actualizarea evenimentului!', 'error');
@@ -545,8 +759,11 @@ async function deleteEvent(eventId) {
         if (response.ok) {
             showMessage('Eveniment șters cu succes!', 'success');
             
-            // Reîncărcare evenimente
-            await loadAdminEvents();
+            // Reîncărcare evenimente și statistici
+            await Promise.all([
+                loadAdminEvents(),
+                loadDashboardStats()
+            ]);
             
         } else {
             showMessage(result.message || 'Eroare la ștergerea evenimentului!', 'error');
@@ -635,7 +852,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Actualizare automată la fiecare 30 de secunde
+// Actualizare automată la fiecare 30
 setInterval(async () => {
     await loadAdminEvents();
 }, 30000);
