@@ -1,10 +1,15 @@
--- Crearea tabelului USERS
+-- ===================================================
+-- SCHEMA COMPLETĂ PENTRU SISTEMUL DE MANAGEMENT EVENIMENTE
+-- ===================================================
+
+-- 1. CREAREA TABELULUI USERS
 CREATE TABLE USERS (
     ID_USER NUMBER PRIMARY KEY,
     USERNAME VARCHAR2(50) UNIQUE NOT NULL,
     PASSWORD VARCHAR2(100) NOT NULL,
     EMAIL VARCHAR2(100) UNIQUE NOT NULL,
     ROLE VARCHAR2(20) CHECK (ROLE IN ('admin', 'user')) NOT NULL,
+    DATA_NASTERII DATE,
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -25,7 +30,63 @@ BEGIN
 END;
 /
 
--- Crearea tabelului EVENTS
+-- 2. CREAREA TABELULUI CATEGORIES
+CREATE TABLE CATEGORIES (
+    ID NUMBER PRIMARY KEY,
+    NAME VARCHAR2(100) NOT NULL UNIQUE,
+    DESCRIPTION VARCHAR2(500),
+    COLOR VARCHAR2(7), -- pentru hex color codes (#FF5733)
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Secvența pentru CATEGORIES
+CREATE SEQUENCE seq_categories_id
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
+-- Trigger pentru auto-increment CATEGORIES
+CREATE OR REPLACE TRIGGER trg_categories_id
+BEFORE INSERT ON CATEGORIES
+FOR EACH ROW
+BEGIN
+    IF :NEW.ID IS NULL THEN
+        :NEW.ID := seq_categories_id.NEXTVAL;
+    END IF;
+END;
+/
+
+-- 3. CREAREA TABELULUI VENUES
+CREATE TABLE VENUES (
+    ID NUMBER PRIMARY KEY,
+    NAME VARCHAR2(200) NOT NULL,
+    ADDRESS VARCHAR2(500) NOT NULL,
+    CITY VARCHAR2(100) NOT NULL,
+    MAX_CAPACITY NUMBER NOT NULL,
+    FACILITIES VARCHAR2(1000), -- JSON-like string cu facilități
+    CONTACT_PHONE VARCHAR2(20),
+    CONTACT_EMAIL VARCHAR2(100),
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Secvența pentru VENUES
+CREATE SEQUENCE seq_venues_id
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
+-- Trigger pentru auto-increment VENUES
+CREATE OR REPLACE TRIGGER trg_venues_id
+BEFORE INSERT ON VENUES
+FOR EACH ROW
+BEGIN
+    IF :NEW.ID IS NULL THEN
+        :NEW.ID := seq_venues_id.NEXTVAL;
+    END IF;
+END;
+/
+
+-- 4. CREAREA TABELULUI EVENTS
 CREATE TABLE EVENTS (
     ID NUMBER PRIMARY KEY,
     TITLE VARCHAR2(200) NOT NULL,
@@ -34,8 +95,13 @@ CREATE TABLE EVENTS (
     LOCATION VARCHAR2(200) NOT NULL,
     CAPACITY NUMBER NOT NULL,
     ORGANIZER_ID NUMBER NOT NULL,
+    CATEGORY_ID NUMBER,
+    VENUE_ID NUMBER,
+    STATUS VARCHAR2(20) DEFAULT 'draft' CHECK (STATUS IN ('draft', 'published', 'cancelled')),
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_events_organizer FOREIGN KEY (ORGANIZER_ID) REFERENCES USERS(ID_USER)
+    CONSTRAINT fk_events_organizer FOREIGN KEY (ORGANIZER_ID) REFERENCES USERS(ID_USER),
+    CONSTRAINT fk_events_category FOREIGN KEY (CATEGORY_ID) REFERENCES CATEGORIES(ID),
+    CONSTRAINT fk_events_venue FOREIGN KEY (VENUE_ID) REFERENCES VENUES(ID)
 );
 
 -- Crearea secvenței pentru EVENTS
@@ -55,7 +121,7 @@ BEGIN
 END;
 /
 
--- Crearea tabelului REGISTRATIONS
+-- 5. CREAREA TABELULUI REGISTRATIONS
 CREATE TABLE REGISTRATIONS (
     ID NUMBER PRIMARY KEY,
     USER_ID NUMBER NOT NULL,
@@ -82,3 +148,20 @@ BEGIN
     END IF;
 END;
 /
+
+-- ===================================================
+-- COMENTARII DESPRE SCHEMA
+-- ===================================================
+-- 1. USERS: Utilizatori cu date personale și roluri
+-- 2. CATEGORIES: Categorii pentru evenimente (conferințe, concerte, etc.)
+-- 3. VENUES: Locații pentru evenimente cu detalii complete
+-- 4. EVENTS: Evenimente cu legături către organizatori, categorii și locații
+-- 5. REGISTRATIONS: Înregistrări utilizatori la evenimente
+
+-- ORDINE DE EXECUȚIE:
+-- Tabelele trebuie create în această ordine din cauza dependențelor FK:
+-- 1. USERS (nu are dependențe)
+-- 2. CATEGORIES (nu are dependențe)
+-- 3. VENUES (nu are dependențe)
+-- 4. EVENTS (depinde de USERS, CATEGORIES, VENUES)
+-- 5. REGISTRATIONS (depinde de USERS, EVENTS)
