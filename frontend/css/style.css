@@ -18,7 +18,7 @@ body {
     padding: 20px;
 }
 
-/* stiluri pentru autentificare */
+/* === STILURI PENTRU AUTENTIFICARE === */
 .auth-container {
     max-width: 400px;
     margin: 50px auto;
@@ -70,7 +70,7 @@ body {
     display: block;
 }
 
-/* stiluri pentru formulare */
+/* === STILURI PENTRU FORMULARE === */
 .form-group {
     margin-bottom: 20px;
 }
@@ -110,7 +110,7 @@ textarea {
     min-height: 80px;
 }
 
-/* stiluri pentru butoane */
+/* === STILURI PENTRU BUTOANE === */
 .btn {
     padding: 12px 24px;
     border: none;
@@ -145,8 +145,9 @@ textarea {
     color: white;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
     background: #5a6268;
+    transform: translateY(-1px);
 }
 
 .btn-success {
@@ -154,8 +155,9 @@ textarea {
     color: white;
 }
 
-.btn-success:hover {
+.btn-success:hover:not(:disabled) {
     background: #218838;
+    transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -163,8 +165,9 @@ textarea {
     color: white;
 }
 
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled) {
     background: #c82333;
+    transform: translateY(-1px);
 }
 
 .btn-info {
@@ -172,8 +175,19 @@ textarea {
     color: white;
 }
 
-.btn-info:hover {
+.btn-info:hover:not(:disabled) {
     background: #138496;
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: #e0a800;
+    transform: translateY(-1px);
 }
 
 .btn-small {
@@ -181,7 +195,7 @@ textarea {
     font-size: 14px;
 }
 
-/* stiluri pentru dashboard */
+/* === STILURI PENTRU DASHBOARD === */
 .dashboard-header {
     background: white;
     border-radius: 10px;
@@ -200,6 +214,12 @@ textarea {
     font-size: 28px;
 }
 
+.dashboard-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
 .user-info {
     display: flex;
     align-items: center;
@@ -211,7 +231,12 @@ textarea {
     font-weight: 600;
 }
 
-/* stiluri pentru statistici */
+#username {
+    color: #667eea;
+    font-weight: bold;
+}
+
+/* === STILURI PENTRU STATISTICI === */
 .stats-section {
     background: white;
     border-radius: 10px;
@@ -238,17 +263,28 @@ textarea {
     padding: 20px;
     border-radius: 10px;
     text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
 }
 
 .stat-card h3 {
     font-size: 14px;
     margin-bottom: 10px;
     opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .stat-number {
     font-size: 32px;
     font-weight: bold;
+}
+
+.top-categories {
+    margin-top: 20px;
 }
 
 .top-categories h3 {
@@ -270,12 +306,19 @@ textarea {
     display: flex;
     align-items: center;
     gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.category-stat:hover {
+    border-color: #667eea;
+    transform: translateY(-1px);
 }
 
 .category-color {
     width: 20px;
     height: 20px;
     border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .category-name {
@@ -290,9 +333,11 @@ textarea {
     border-radius: 12px;
     font-size: 12px;
     font-weight: bold;
+    min-width: 20px;
+    text-align: center;
 }
 
-/* stiluri pentru filtru */
+/* === STILURI PENTRU FILTRU === */
 .filters-section {
     background: white;
     border-radius: 10px;
@@ -312,6 +357,11 @@ textarea {
     gap: 20px;
 }
 
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
 .filter-group label {
     display: block;
     margin-bottom: 5px;
@@ -319,7 +369,7 @@ textarea {
     color: #555;
 }
 
-/* stiluri pentru evenimente populare */
+/* === STILURI PENTRU EVENIMENTE POPULARE === */
 .popular-events-section {
     background: white;
     border-radius: 10px;
@@ -338,7 +388,7 @@ textarea {
     overflow-y: auto;
 }
 
-/* stiluri pentru statistici categorii */
+/* === STILURI PENTRU STATISTICI CATEGORII === */
 .category-stats-section {
     background: white;
     border-radius: 10px;
@@ -366,6 +416,13 @@ textarea {
     display: flex;
     align-items: center;
     gap: 15px;
+    transition: all 0.3s ease;
+}
+
+.category-stat-card:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .category-stat-card .category-color {
@@ -383,6 +440,7 @@ textarea {
     font-weight: bold;
     color: #333;
     margin-bottom: 5px;
+    font-size: 16px;
 }
 
 .category-stat-info .stats {
@@ -390,7 +448,7 @@ textarea {
     font-size: 14px;
 }
 
-/* stiluri pentru evenimente */
+/* === STILURI PENTRU EVENIMENTE === */
 .create-event-section {
     background: white;
     border-radius: 10px;
@@ -402,6 +460,10 @@ textarea {
 .create-event-section h2 {
     margin-bottom: 20px;
     color: #333;
+}
+
+.event-form {
+    width: 100%;
 }
 
 .events-section {
@@ -429,6 +491,7 @@ textarea {
     padding: 20px;
     transition: all 0.3s ease;
     position: relative;
+    min-height: 200px;
 }
 
 .event-card:hover {
@@ -442,6 +505,7 @@ textarea {
     font-weight: bold;
     color: #333;
     margin-bottom: 10px;
+    padding-right: 80px; /* Space for category badge */
 }
 
 .event-category {
@@ -453,6 +517,8 @@ textarea {
     font-size: 12px;
     font-weight: bold;
     color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .event-venue {
@@ -481,6 +547,7 @@ textarea {
 .event-info-item strong {
     color: #333;
     margin-right: 5px;
+    min-width: 60px;
 }
 
 .event-description {
@@ -488,12 +555,16 @@ textarea {
     font-size: 14px;
     margin-bottom: 15px;
     line-height: 1.5;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .event-actions {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    margin-top: auto;
 }
 
 .capacity-info {
@@ -503,11 +574,17 @@ textarea {
     font-size: 12px;
     color: #666;
     margin-bottom: 10px;
+    text-align: center;
 }
 
 .capacity-full {
     background: #f8d7da;
     color: #721c24;
+}
+
+.capacity-available {
+    background: #d4edda;
+    color: #155724;
 }
 
 .event-status {
@@ -519,6 +596,7 @@ textarea {
     font-size: 12px;
     font-weight: bold;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status-published {
@@ -531,7 +609,12 @@ textarea {
     color: #212529;
 }
 
-/* stiluri pentru modal */
+.status-full {
+    background: #dc3545;
+    color: white;
+}
+
+/* === STILURI PENTRU MODAL === */
 .modal {
     display: none;
     position: fixed;
@@ -541,6 +624,13 @@ textarea {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
@@ -551,6 +641,18 @@ textarea {
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .modal-header {
@@ -559,6 +661,8 @@ textarea {
     align-items: center;
     padding: 20px 30px;
     border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 10px 10px 0 0;
 }
 
 .modal-header h3 {
@@ -571,6 +675,7 @@ textarea {
     font-weight: bold;
     cursor: pointer;
     color: #999;
+    transition: color 0.3s ease;
 }
 
 .close:hover {
@@ -590,9 +695,11 @@ textarea {
     gap: 10px;
     justify-content: flex-end;
     margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
 }
 
-/* stiluri pentru raport */
+/* === STILURI PENTRU RAPORT === */
 .report-content {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -603,6 +710,8 @@ textarea {
     font-family: monospace;
     font-size: 14px;
     line-height: 1.4;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .average-age-info {
@@ -618,7 +727,7 @@ textarea {
     font-size: 18px;
 }
 
-/* stiluri pentru mesaje */
+/* === STILURI PENTRU MESAJE === */
 .message {
     margin: 20px 0;
     padding: 12px 20px;
@@ -626,6 +735,18 @@ textarea {
     font-weight: 600;
     text-align: center;
     display: none;
+    animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .message.success {
@@ -649,11 +770,38 @@ textarea {
     display: block;
 }
 
+.message.warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+    display: block;
+}
+
+/* === STILURI PENTRU LOADING ȘI EMPTY STATES === */
 .loading {
     text-align: center;
     color: #666;
     font-style: italic;
     padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.loading::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e9ecef;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .no-events {
@@ -663,7 +811,19 @@ textarea {
     font-style: italic;
 }
 
-/* responsivitate */
+/* === STILURI PENTRU COLORI CATEGORII === */
+.category-music { background-color: #ff6b6b; }
+.category-sport { background-color: #4ecdc4; }
+.category-tech { background-color: #45b7d1; }
+.category-art { background-color: #f9ca24; }
+.category-food { background-color: #f0932b; }
+.category-business { background-color: #eb4d4b; }
+.category-education { background-color: #6c5ce7; }
+.category-health { background-color: #00b894; }
+.category-entertainment { background-color: #e17055; }
+.category-other { background-color: #636e72; }
+
+/* === RESPONSIVITATE === */
 @media (max-width: 768px) {
     .container {
         padding: 10px;
@@ -715,6 +875,21 @@ textarea {
     .category-stats-grid {
         grid-template-columns: 1fr;
     }
+    
+    .categories-stats {
+        justify-content: center;
+    }
+    
+    .event-title {
+        padding-right: 0;
+        margin-bottom: 40px;
+    }
+    
+    .event-category {
+        top: auto;
+        bottom: 15px;
+        right: 15px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -726,6 +901,32 @@ textarea {
         font-size: 24px;
     }
     
-    .auth-form {
+    .auth-form {        
         padding: 20px;
     }
+    
+    .dashboard-header h1 {
+        font-size: 24px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .events-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .event-card {
+        min-height: auto;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .event-actions {
+        flex-direction: column;
+    }
+}
